@@ -5,6 +5,7 @@ import (
 	"expvar"
 	"fmt"
 	"github.com/ardanlabs/conf"
+	"github.com/jean-pasqualini/go-service/app/sales-api/handlers"
 	"github.com/pkg/errors"
 	"log"
 	"net/http"
@@ -119,7 +120,7 @@ func run(log *log.Logger) error {
 
 	api := http.Server{
 		Addr: cfg.Web.APIHOST,
-		Handler: nil,
+		Handler: handlers.API(BUILD, shutdown, log),
 		ReadTimeout: cfg.Web.ReadTimeout,
 		WriteTimeout: cfg.Web.WriteTimeout,
 	}

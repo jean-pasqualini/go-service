@@ -2,18 +2,21 @@
 package handlers
 
 import (
+	"github.com/jean-pasqualini/go-service/foundation/web"
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/dimfeld/httptreemux/v5"
 )
 
 func API(build string, shutdown chan os.Signal, log *log.Logger) http.Handler {
+	app := web.NewApp(
+		shutdown,
+		func(handler web.Handler) web.Handler {
+			return handler
+		},
+	)
 
-	tm := httptreemux.NewContextMux()
+	app.Handle(http.MethodGet, "/readiness", check{log: log}.readiness)
 
-	tm.Handle(http.MethodGet, "/readiness", check{log: log}.readiness)
-
-	return tm
+	return app
 }

@@ -37,7 +37,6 @@ func main() {
 	}
 }
 
-
 func run(log *log.Logger) error {
 
 	// =================================================================================================================
@@ -58,20 +57,20 @@ func run(log *log.Logger) error {
 
 	if err := conf.Parse(os.Args[1:], NAMESPACE_CONF, &cfg); err != nil {
 		switch err {
-			case conf.ErrHelpWanted:
-				usage, err := conf.Usage(NAMESPACE_CONF, &cfg)
-				if err != nil {
-					return errors.Wrap(err, "generating config usage")
-				}
-				fmt.Println(usage)
-				return nil
-			case conf.ErrVersionWanted:
-				version, err := conf.VersionString(NAMESPACE_CONF, &cfg)
-				if err != nil {
-					return errors.Wrap(err, "generating config version")
-				}
-				fmt.Println(version)
-				return nil
+		case conf.ErrHelpWanted:
+			usage, err := conf.Usage(NAMESPACE_CONF, &cfg)
+			if err != nil {
+				return errors.Wrap(err, "generating config usage")
+			}
+			fmt.Println(usage)
+			return nil
+		case conf.ErrVersionWanted:
+			version, err := conf.VersionString(NAMESPACE_CONF, &cfg)
+			if err != nil {
+				return errors.Wrap(err, "generating config version")
+			}
+			fmt.Println(version)
+			return nil
 		}
 		return errors.Wrap(err, "parsing config")
 	}
@@ -89,7 +88,6 @@ func run(log *log.Logger) error {
 		return errors.Wrap(err, "generating config for output")
 	}
 	log.Printf("main: Config: \n%v\n", out)
-
 
 	// =================================================================================================================
 	// Start Debug Service
@@ -119,9 +117,9 @@ func run(log *log.Logger) error {
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 
 	api := http.Server{
-		Addr: cfg.Web.APIHOST,
-		Handler: handlers.API(BUILD, shutdown, log),
-		ReadTimeout: cfg.Web.ReadTimeout,
+		Addr:         cfg.Web.APIHOST,
+		Handler:      handlers.API(BUILD, shutdown, log),
+		ReadTimeout:  cfg.Web.ReadTimeout,
 		WriteTimeout: cfg.Web.WriteTimeout,
 	}
 
@@ -140,21 +138,21 @@ func run(log *log.Logger) error {
 
 	// Blocking main and waiting for shutdown.
 	select {
-		case err := <-serverErrors:
-			return errors.Wrap(err, "server error")
+	case err := <-serverErrors:
+		return errors.Wrap(err, "server error")
 
-		case sig := <-shutdown:
-			log.Printf("main: %v : Start shutdown", sig)
+	case sig := <-shutdown:
+		log.Printf("main: %v : Start shutdown", sig)
 
-			// Give outstanding requests a deadline for completing.
-			ctx, cancel := context.WithTimeout(context.Background(), cfg.Web.ShutdownTimeout)
-			defer cancel()
+		// Give outstanding requests a deadline for completing.
+		ctx, cancel := context.WithTimeout(context.Background(), cfg.Web.ShutdownTimeout)
+		defer cancel()
 
-			// Asking listener to shutdown and shed load.
-			if err := api.Shutdown(ctx); err != nil {
-				api.Close()
-				return errors.Wrap(err, "could not stop server gracefully")
-			}
+		// Asking listener to shutdown and shed load.
+		if err := api.Shutdown(ctx); err != nil {
+			api.Close()
+			return errors.Wrap(err, "could not stop server gracefully")
+		}
 	}
 
 	return nil

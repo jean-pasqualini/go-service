@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
+	"github.com/jean-pasqualini/go-service/foundation/web"
 	"log"
+	"math/rand"
 	"net/http"
+	"github.com/pkg/errors"
 )
 
 type check struct {
@@ -12,5 +14,9 @@ type check struct {
 }
 
 func (c check) readiness(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	return json.NewEncoder(w).Encode(struct{ Status string }{Status: "OK"})
+	if n := rand.Intn(100); n % 2 == 0 {
+		return errors.New("untrusted error")
+	}
+
+	return web.Respond(ctx, w, struct{ Status string }{Status: "OK"}, http.StatusOK)
 }

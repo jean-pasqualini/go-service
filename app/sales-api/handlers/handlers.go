@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"github.com/jean-pasqualini/go-service/business/mid"
 	"github.com/jean-pasqualini/go-service/foundation/web"
 	"log"
 	"net/http"
@@ -11,9 +12,8 @@ import (
 func API(build string, shutdown chan os.Signal, log *log.Logger) http.Handler {
 	app := web.NewApp(
 		shutdown,
-		func(handler web.Handler) web.Handler {
-			return handler
-		},
+		mid.Logger(log),
+		mid.Errors(log),
 	)
 
 	app.Handle(http.MethodGet, "/readiness", check{log: log}.readiness)

@@ -5,4 +5,4 @@ run:
 
 tidy:
 	go mod tidy
-	# go mod vendor (only to version the mods)
+	# go mid vendor (only to version the mods)

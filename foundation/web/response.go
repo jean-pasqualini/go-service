@@ -68,6 +68,4 @@ func RespondError(ctx context.Context, w http.ResponseWriter, err error) error {
 	}
 
 	return nil
-
-	return nil
 }

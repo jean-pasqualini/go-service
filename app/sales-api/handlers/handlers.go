@@ -14,6 +14,8 @@ func API(build string, shutdown chan os.Signal, log *log.Logger) http.Handler {
 		shutdown,
 		mid.Logger(log),
 		mid.Errors(log),
+		mid.Panics(log),
+		mid.Metrics(),
 	)
 
 	app.Handle(http.MethodGet, "/readiness", check{log: log}.readiness)

@@ -5,7 +5,7 @@ en "github.com/go-playground/locales/en"
 ut "github.com/go-playground/universal-translator"
 validator "gopkg.in/go-playground/validator.v9"
 en_translations "gopkg.in/go-playground/validator/v9/translations/en"
- */
+*/
 
 import (
 	"encoding/json"
@@ -81,7 +81,7 @@ func Decode(r *http.Request, val interface{}) error {
 		}
 
 		return &Error{
-			Err: errors.New("field validation error"),
+			Err:    errors.New("field validation error"),
 			Status: http.StatusBadRequest,
 			Fields: fields,
 		}

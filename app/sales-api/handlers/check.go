@@ -15,13 +15,13 @@ type check struct {
 
 func (c check) readiness(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	/**
-		var u user.User
-		if err := web.Decode(r, &u); err != nil {
-			return err
-		}
+	var u user.User
+	if err := web.Decode(r, &u); err != nil {
+		return err
+	}
 	*/
 
-	if n := rand.Intn(100); n % 2 == 0 {
+	if n := rand.Intn(100); n%2 == 0 {
 		return web.NewRequestError(errors.New("trusted error"), http.StatusNotFound)
 	}
 

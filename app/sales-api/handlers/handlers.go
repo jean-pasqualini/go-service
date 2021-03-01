@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	authentication "github.com/jean-pasqualini/go-service/business/auth"
 	"github.com/jean-pasqualini/go-service/business/mid"
 	"github.com/jean-pasqualini/go-service/foundation/web"
 	"log"
@@ -9,7 +10,7 @@ import (
 	"os"
 )
 
-func API(build string, shutdown chan os.Signal, log *log.Logger) http.Handler {
+func API(build string, shutdown chan os.Signal, log *log.Logger, auth  *authentication.Auth) http.Handler {
 	app := web.NewApp(
 		shutdown,
 		mid.Logger(log),
@@ -18,7 +19,12 @@ func API(build string, shutdown chan os.Signal, log *log.Logger) http.Handler {
 		mid.Metrics(),
 	)
 
-	app.Handle(http.MethodGet, "/readiness", check{log: log}.readiness)
+	app.Handle(
+		http.MethodGet,
+		"/readiness",
+		check{log: log}.readiness,
+		mid.Authenticate(auth), mid.Authorize(log, authentication.RoleAdmin),
+	)
 
 	return app
 }

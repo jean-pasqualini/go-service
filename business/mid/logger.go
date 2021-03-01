@@ -23,7 +23,7 @@ import (
 func Logger(log *log.Logger) web.Middleware {
 
 	// It will decorate the handler passed with a custom behavior before and/or after have called the inner handler.
-	middleware := func (innerHandler web.Handler) web.Handler {
+	middleware := func(innerHandler web.Handler) web.Handler {
 
 		// This is a decorated handler.
 		outerHandler := func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {

@@ -16,7 +16,7 @@ type ErrorResponse struct {
 
 // Error is used to pass an error during the request through the application with web specific request.
 type Error struct {
-	Err error
+	Err    error
 	Status int
 	Fields []FieldError
 }

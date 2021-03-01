@@ -10,7 +10,7 @@ import (
 // Errors ...
 func Errors(log *log.Logger) web.Middleware {
 	return func(handler web.Handler) web.Handler {
-		return func (ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+		return func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 
 			// If the context is missing the value, request the service to be shutdown gracefully
 			v, ok := ctx.Value(web.KeyValues).(*web.Values)

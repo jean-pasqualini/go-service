@@ -30,7 +30,7 @@ symbols in profiles:
 */
 
 const NAMESPACE_CONF = "SALES"
-const BUILD = "develop"
+var BUILD_VERSION string = "develop"
 
 func main() {
 	log := log.New(os.Stdout, "SALES : ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile)
@@ -57,12 +57,12 @@ func run(log *log.Logger) error {
 		}
 		Auth struct {
 			KeyID          string `conf:"default:54bb2165-71e1-41a6-af3e-7da4a0e1e2c1"`
-			PrivateKeyFile string `conf:"default:./private.pem"`
+			PrivateKeyFile string `conf:"default:/service/private.pem"`
 			Algorithm      string `conf:"default:RS256"`
 		}
 	}
 	cfg.Version.Desc = "copyright information here"
-	cfg.Version.SVN = BUILD
+	cfg.Version.SVN = BUILD_VERSION
 
 	if err := conf.Parse(os.Args[1:], NAMESPACE_CONF, &cfg); err != nil {
 		switch err {
@@ -88,8 +88,8 @@ func run(log *log.Logger) error {
 	// App starting
 
 	// Print the build version for our logs. ALso expose it under /debug/vars
-	expvar.NewString("build").Set(BUILD)
-	log.Printf("main: Started : Application initializing : version %q", BUILD)
+	expvar.NewString("build").Set(BUILD_VERSION)
+	log.Printf("main: Started : Application initializing : version %q", BUILD_VERSION)
 	defer log.Println("main: Completed")
 
 	out, err := conf.String(&cfg)
@@ -155,7 +155,7 @@ func run(log *log.Logger) error {
 
 	api := http.Server{
 		Addr:         cfg.Web.APIHOST,
-		Handler:      handlers.API(BUILD, shutdown, log, auth),
+		Handler:      handlers.API(BUILD_VERSION, shutdown, log, auth),
 		ReadTimeout:  cfg.Web.ReadTimeout,
 		WriteTimeout: cfg.Web.WriteTimeout,
 	}

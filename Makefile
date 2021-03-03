@@ -29,7 +29,7 @@ hey:
 	hey -m GET -c 100 -n 1000000 "http://localhost:3000/readiness"
 
 # Administration
-genkeys:
+run-admin:
 	@go run app/admin/main.go
 
 # Running tests within the local computer

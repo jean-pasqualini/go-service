@@ -7,6 +7,8 @@ import (
 	"encoding/pem"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/jean-pasqualini/go-service/business/data/schema"
+	"github.com/jean-pasqualini/go-service/foundation/database"
 	"io/ioutil"
 	"log"
 	"os"
@@ -19,8 +21,34 @@ openssl rsa -pubout -in private.pem -out public.pub
 */
 
 func main() {
-	keygen()
-	tokengen()
+	// keygen()
+	// tokengen()
+	migrate()
+}
+
+func migrate() {
+	dbConfig := database.Config{
+		User: "postgres",
+		Password: "postgres",
+		Host: "0.0.0.0",
+		Name: "postgres",
+		DisableTLS: true,
+	}
+
+	db, err := database.Open(dbConfig)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer db.Close()
+
+	if err := schema.Migrate(db); err != nil {
+		log.Fatalln(err)
+	}
+	if err := schema.Seed(db); err != nil {
+		log.Fatalln(err)
+	}
+
+	fmt.Println("DONE")
 }
 
 func tokengen() {

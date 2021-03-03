@@ -5,12 +5,13 @@ import (
 	authentication "github.com/jean-pasqualini/go-service/business/auth"
 	"github.com/jean-pasqualini/go-service/business/mid"
 	"github.com/jean-pasqualini/go-service/foundation/web"
+	"github.com/jmoiron/sqlx"
 	"log"
 	"net/http"
 	"os"
 )
 
-func API(build string, shutdown chan os.Signal, log *log.Logger, auth  *authentication.Auth) http.Handler {
+func API(build string, shutdown chan os.Signal, log *log.Logger, db *sqlx.DB, auth *authentication.Auth) http.Handler {
 	app := web.NewApp(
 		shutdown,
 		mid.Logger(log),
@@ -22,12 +23,12 @@ func API(build string, shutdown chan os.Signal, log *log.Logger, auth  *authenti
 	app.Handle(
 		http.MethodGet,
 		"/readiness",
-		check{log: log, build: build}.readiness,
+		check{log: log, build: build, db: db}.readiness,
 	)
 	app.Handle(
 		http.MethodGet,
 		"/liveness",
-		check{log: log, build: build}.liveness,
+		check{log: log, build: build, db: db}.liveness,
 	)
 
 	return app

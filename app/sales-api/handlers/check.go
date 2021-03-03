@@ -2,24 +2,29 @@ package handlers
 
 import (
 	"context"
+	"github.com/jean-pasqualini/go-service/foundation/database"
 	"github.com/jean-pasqualini/go-service/foundation/web"
+	"github.com/jmoiron/sqlx"
 	"log"
-	"math/rand"
 	"net/http"
 	"os"
 )
 
 type check struct {
 	build string
-	log *log.Logger
+	log   *log.Logger
+	db *sqlx.DB
 }
 
 func (c check) readiness(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	if n := rand.Intn(100); n%2 == 0 {
-	//	return web.NewRequestError(errors.New("trusted error"), http.StatusNotFound)
+	status := "ok"
+	statusCode := http.StatusOK
+	if err := database.StatusCheck(ctx, c.db); err != nil {
+		status = "db not ready"
+		statusCode = http.StatusInternalServerError
 	}
 
-	return web.Respond(ctx, w, struct{ Status string }{Status: "OK"}, http.StatusOK)
+	return web.Respond(ctx, w, struct{ Status string }{Status: status}, statusCode)
 }
 
 func (c check) liveness(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
@@ -30,20 +35,20 @@ func (c check) liveness(ctx context.Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	info := struct {
-		Status string
-		Build string
-		Host string
-		Pod string
-		PodIP string
-		Node string
+		Status    string
+		Build     string
+		Host      string
+		Pod       string
+		PodIP     string
+		Node      string
 		Namespace string
-	} {
-		Status: "up",
-		Build: c.build,
-		Host: host,
-		Pod: os.Getenv("KUBERNETES_PODNAME"),
-		PodIP: os.Getenv("KUBERNETES_NAMESPACE_POD_IP"),
-		Node: os.Getenv("KUBERNETES_NODENAME"),
+	}{
+		Status:    "up",
+		Build:     c.build,
+		Host:      host,
+		Pod:       os.Getenv("KUBERNETES_PODNAME"),
+		PodIP:     os.Getenv("KUBERNETES_NAMESPACE_POD_IP"),
+		Node:      os.Getenv("KUBERNETES_NODENAME"),
 		Namespace: os.Getenv("KUBERNETES_NAMESPACE"),
 	}
 

@@ -9,6 +9,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jean-pasqualini/go-service/app/sales-api/handlers"
 	"github.com/jean-pasqualini/go-service/business/auth"
+	"github.com/jean-pasqualini/go-service/foundation/database"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"log"
@@ -30,6 +31,7 @@ symbols in profiles:
 */
 
 const NAMESPACE_CONF = "SALES"
+
 var BUILD_VERSION string = "develop"
 
 func main() {
@@ -59,6 +61,13 @@ func run(log *log.Logger) error {
 			KeyID          string `conf:"default:54bb2165-71e1-41a6-af3e-7da4a0e1e2c1"`
 			PrivateKeyFile string `conf:"default:/service/private.pem"`
 			Algorithm      string `conf:"default:RS256"`
+		}
+		DB struct {
+			User       string `conf:"default:postgres"`
+			Password   string `conf:"default:postgres,noprint"`
+			Host       string `conf:"default:db"`
+			Name       string `conf:"default:postgres"`
+			DisableTLS bool   `conf:"default:true"`
 		}
 	}
 	cfg.Version.Desc = "copyright information here"
@@ -115,8 +124,8 @@ func run(log *log.Logger) error {
 
 	lookup := func(kid string) (*rsa.PublicKey, error) {
 		switch kid {
-			case cfg.Auth.KeyID:
-				return &privateKey.PublicKey, nil
+		case cfg.Auth.KeyID:
+			return &privateKey.PublicKey, nil
 		}
 		return nil, fmt.Errorf("no public key found for the specified kid: %s", kid)
 	}
@@ -125,6 +134,20 @@ func run(log *log.Logger) error {
 	if err != nil {
 		return errors.Wrap(err, "constructing auth")
 	}
+
+	// =================================================================================================================
+	// Start Database
+
+	log.Println("main: Initializing database support")
+
+	db, err := database.Open(database.Config(cfg.DB))
+	if err != nil {
+		return errors.Wrap(err, "connecting to db")
+	}
+	defer func() {
+		log.Printf("main: Database Stopping : %s", cfg.DB.Host)
+		db.Close()
+	}()
 
 	// =================================================================================================================
 	// Start Debug Service
@@ -155,7 +178,7 @@ func run(log *log.Logger) error {
 
 	api := http.Server{
 		Addr:         cfg.Web.APIHOST,
-		Handler:      handlers.API(BUILD_VERSION, shutdown, log, auth),
+		Handler:      handlers.API(BUILD_VERSION, shutdown, log, db, auth),
 		ReadTimeout:  cfg.Web.ReadTimeout,
 		WriteTimeout: cfg.Web.WriteTimeout,
 	}

@@ -28,10 +28,10 @@ func main() {
 
 func migrate() {
 	dbConfig := database.Config{
-		User: "postgres",
-		Password: "postgres",
-		Host: "0.0.0.0",
-		Name: "postgres",
+		User:       "postgres",
+		Password:   "postgres",
+		Host:       "0.0.0.0",
+		Name:       "postgres",
 		DisableTLS: true,
 	}
 

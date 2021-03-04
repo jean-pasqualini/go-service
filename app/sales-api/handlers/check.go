@@ -13,7 +13,7 @@ import (
 type check struct {
 	build string
 	log   *log.Logger
-	db *sqlx.DB
+	db    *sqlx.DB
 }
 
 func (c check) readiness(ctx context.Context, w http.ResponseWriter, r *http.Request) error {

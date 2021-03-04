@@ -31,10 +31,10 @@ func Open(cfg Config) (*sqlx.DB, error) {
 	q.Set("timezone", "utc")
 
 	u := url.URL{
-		Scheme: "postgres",
-		User: url.UserPassword(cfg.User, cfg.Password),
-		Host: cfg.Host,
-		Path: cfg.Name,
+		Scheme:   "postgres",
+		User:     url.UserPassword(cfg.User, cfg.Password),
+		Host:     cfg.Host,
+		Path:     cfg.Name,
 		RawQuery: q.Encode(),
 	}
 
@@ -63,14 +63,14 @@ func Log(query string, args ...interface{}) string {
 
 		var a string
 		switch v := arg.(type) {
-			case string:
-				a = fmt.Sprintf("%q", v)
-			case []byte:
-				a = string(v)
-			case []string:
-				a = strings.Join(v, " ")
-			default:
-				a = fmt.Sprintf("%v", v)
+		case string:
+			a = fmt.Sprintf("%q", v)
+		case []byte:
+			a = string(v)
+		case []string:
+			a = strings.Join(v, " ")
+		default:
+			a = fmt.Sprintf("%v", v)
 		}
 
 		query = strings.Replace(query, n, a, 1)

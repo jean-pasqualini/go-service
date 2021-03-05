@@ -3,9 +3,13 @@ package tests
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/jean-pasqualini/go-service/business/auth"
 	"github.com/jean-pasqualini/go-service/business/data/schema"
+	"github.com/jean-pasqualini/go-service/business/data/user"
 	"github.com/jean-pasqualini/go-service/foundation/database"
 	"github.com/jean-pasqualini/go-service/foundation/web"
 	"github.com/jmoiron/sqlx"
@@ -98,18 +102,6 @@ func IntPointer(i int) *int {
 	return &i
 }
 
-// Test owns state for running and shutting down tests.
-type Test struct {
-	TraceID  string
-	DB       *sqlx.DB
-	Log      *log.Logger
-	Auth     *auth.Auth
-	KID      string
-	Teardown func()
-
-	t *testing.T
-}
-
 // Context returns an app level context for testing.
 func Context() context.Context {
 	values := web.Values{
@@ -118,4 +110,79 @@ func Context() context.Context {
 	}
 
 	return context.WithValue(context.Background(), web.KeyValues, &values)
+}
+
+// Test owns state for running and shutting down tests.
+type Test struct {
+	TraceID string
+	DB      *sqlx.DB
+	Log     *log.Logger
+	Auth    *auth.Auth
+	KID     string
+	cleanup func()
+
+	t *testing.T
+}
+
+// NewIntegration creates a database, seeds it, constructs an authenticator.
+func NewIntegration(t *testing.T) *Test {
+	log, db, cleanup := NewUnit(t)
+
+	if err := schema.Seed(db); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create RSA keys to enable authentication in our service.
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Build an authenticator using this key lookup function to retrieve the corresponding public key.
+	kidID := "4754d86b-7a6d-4df5-9c65-224741361492"
+	lookup := func(kid string) (*rsa.PublicKey, error) {
+		switch kid {
+			case kidID:
+				return &privateKey.PublicKey, nil
+		}
+		return nil, fmt.Errorf("no public key found for the specified kid: %s", kid)
+	}
+
+	authentication, err := auth.New("RS256", lookup, auth.Keys{kidID: privateKey})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	test := Test{
+		TraceID: "00000000-0000-0000-0000000000000",
+		DB:      db,
+		Log:     log,
+		Auth:    authentication,
+		KID:     kidID,
+		t:       t,
+		cleanup: cleanup,
+	}
+
+	return &test
+}
+
+// Teardown releases any resources used for the test.
+func (test *Test) Teardown() {
+	test.cleanup()
+}
+
+// Token generates an authenticated token for a user.
+func (test *Test) Token(kid string, email, pass string) string {
+	u := user.New(test.Log, test.DB)
+	claims, err := u.Authenticate(context.Background(), test.TraceID, time.Now(), email, pass)
+	if err != nil {
+		test.t.Fatal(err)
+	}
+
+	token, err := test.Auth.GenerateToken(kid, claims)
+	if err != nil {
+		test.t.Fatal(err)
+	}
+
+	return token
 }

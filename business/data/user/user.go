@@ -4,6 +4,7 @@ package user
 import (
 	"context"
 	"database/sql"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/jean-pasqualini/go-service/business/auth"
 	"github.com/jean-pasqualini/go-service/foundation/database"
@@ -225,4 +226,54 @@ func (u User) QueryByEmail(ctx context.Context, traceID string, claims auth.Clai
 	}
 
 	return usr, nil
+}
+
+// Authenticate finds a user by their email and verifies their password. On
+// success it returns a Claims Info representing this user. The claims can be
+// used to generate a token for future authentication.
+func (u User) Authenticate(ctx context.Context, traceID string, now time.Time, email, password string) (auth.Claims, error) {
+	const q = `
+	SELECT
+		*
+	FROM
+		users
+	WHERE
+		email = $1`
+
+	u.log.Printf("%s: %s: %s", traceID, "user.Authenticate",
+		database.Log(q, email),
+	)
+
+	var usr Info
+	if err := u.db.GetContext(ctx, &usr, q, email); err != nil {
+
+		// Normally we would return ErrNotFound in this scenario but we do not want
+		// to leak to an unauthenticated user which emails are in the system.
+		if err == sql.ErrNoRows {
+			return auth.Claims{}, ErrAuthenticationFailure
+		}
+
+		return auth.Claims{}, errors.Wrap(err, "selecting single user")
+	}
+
+	// Compare the provided password with the saved hash. Use the bcrypt
+	// comparison function so it is cryptographically secure.
+	if err := bcrypt.CompareHashAndPassword(usr.PasswordHash, []byte(password)); err != nil {
+		return auth.Claims{}, ErrAuthenticationFailure
+	}
+
+	// If we are this far the request is valid. Create some claims for the user
+	// and generate their token.
+	claims := auth.Claims{
+		StandardClaims: jwt.StandardClaims{
+			Issuer:    "service project",
+			Subject:   usr.ID,
+			Audience:  "students",
+			ExpiresAt: now.Add(time.Hour).Unix(),
+			IssuedAt:  now.Unix(),
+		},
+		Roles: usr.Roles,
+	}
+
+	return claims, nil
 }

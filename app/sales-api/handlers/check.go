@@ -10,13 +10,13 @@ import (
 	"os"
 )
 
-type check struct {
+type checkController struct {
 	build string
 	log   *log.Logger
 	db    *sqlx.DB
 }
 
-func (c check) readiness(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func (c checkController) readiness(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	status := "ok"
 	statusCode := http.StatusOK
 	if err := database.StatusCheck(ctx, c.db); err != nil {
@@ -27,7 +27,7 @@ func (c check) readiness(ctx context.Context, w http.ResponseWriter, r *http.Req
 	return web.Respond(ctx, w, struct{ Status string }{Status: status}, statusCode)
 }
 
-func (c check) liveness(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+func (c checkController) liveness(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 
 	host, err := os.Hostname()
 	if err != nil {

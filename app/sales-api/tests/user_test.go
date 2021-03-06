@@ -18,9 +18,9 @@ import (
 // UserTests holds methods for each subtest. this type allows passing dependencies for tests
 // while still providing a convenient syntax when subtests are registered.
 type UserTests struct {
-	app http.Handler
-	kid string
-	userToken string
+	app        http.Handler
+	kid        string
+	userToken  string
 	adminToken string
 }
 
@@ -31,9 +31,9 @@ func TestUsers(t *testing.T) {
 
 	shutdown := make(chan os.Signal, 1)
 	ut := UserTests{
-		app: handlers.API("develop", shutdown, test.Log, test.DB, test.Auth),
-		kid: test.KID,
-		userToken: test.Token(test.KID, "user@example.com", "gophers"),
+		app:        handlers.API("develop", shutdown, test.Log, test.DB, test.Auth),
+		kid:        test.KID,
+		userToken:  test.Token(test.KID, "user@example.com", "gophers"),
 		adminToken: test.Token(test.KID, "admin@example.com", "gophers"),
 	}
 
@@ -53,10 +53,10 @@ func (ut *UserTests) crudUser(t *testing.T) {
 // postUser201 validates a user can be created with the endpoint.
 func (ut *UserTests) postUser201(t *testing.T) user.Info {
 	nu := user.NewUser{
-		Name: "Jean Pasqualini",
-		Email: "jpasqualini75@gmail.com",
-		Roles: []string{auth.RoleAdmin},
-		Password: "gophers",
+		Name:            "Jean Pasqualini",
+		Email:           "jpasqualini75@gmail.com",
+		Roles:           []string{auth.RoleAdmin},
+		Password:        "gophers",
 		PasswordConfirm: "gophers",
 	}
 
@@ -68,7 +68,7 @@ func (ut *UserTests) postUser201(t *testing.T) user.Info {
 	r := httptest.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(body))
 	w := httptest.NewRecorder()
 
-	r.Header.Set("Authorization", "Bearer " + ut.adminToken)
+	r.Header.Set("Authorization", "Bearer "+ut.adminToken)
 	ut.app.ServeHTTP(w, r)
 
 	// This needs to be returned for other tests.

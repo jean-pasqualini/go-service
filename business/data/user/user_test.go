@@ -27,10 +27,10 @@ func TestUser(t *testing.T) {
 			traceID := "00000000-0000-0000-000000000000"
 
 			nu := user.NewUser{
-				Name: "Jean Pasqualini",
-				Email: "jpasqualini75@gmail.com",
-				Roles: []string{auth.RoleAdmin},
-				Password: "gophers",
+				Name:            "Jean Pasqualini",
+				Email:           "jpasqualini75@gmail.com",
+				Roles:           []string{auth.RoleAdmin},
+				Password:        "gophers",
 				PasswordConfirm: "gophers",
 			}
 
@@ -42,11 +42,11 @@ func TestUser(t *testing.T) {
 
 			claims := auth.Claims{
 				StandardClaims: jwt.StandardClaims{
-					Issuer: "service project",
-					Subject: usr.ID,
-					Audience: "students",
+					Issuer:    "service project",
+					Subject:   usr.ID,
+					Audience:  "students",
 					ExpiresAt: now.Add(time.Hour).Unix(),
-					IssuedAt: now.Unix(),
+					IssuedAt:  now.Unix(),
 				},
 				Roles: []string{auth.RoleUser},
 			}
@@ -63,16 +63,16 @@ func TestUser(t *testing.T) {
 			t.Logf("\t%s\tTest %d:\tShould get back the same user.", tests.Success, testID)
 
 			upd := user.UpdateUser{
-				Name: tests.StringPointer("Jacob Walker"),
+				Name:  tests.StringPointer("Jacob Walker"),
 				Email: tests.StringPointer("jacob@ardanlabs.com"),
 			}
 
 			claims = auth.Claims{
 				StandardClaims: jwt.StandardClaims{
-					Issuer: "service project",
-					Audience: "students",
+					Issuer:    "service project",
+					Audience:  "students",
 					ExpiresAt: now.Add(time.Hour).Unix(),
-					IssuedAt: now.Unix(),
+					IssuedAt:  now.Unix(),
 				},
 				Roles: []string{auth.RoleAdmin},
 			}

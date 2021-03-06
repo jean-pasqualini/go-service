@@ -10,9 +10,10 @@ import (
 	"github.com/jean-pasqualini/go-service/foundation/database"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"go.opentelemetry.io/otel/trace"
+	"golang.org/x/crypto/bcrypt"
 	"log"
 	"time"
-	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -51,13 +52,13 @@ func (u User) Create(ctx context.Context, traceID string, nu NewUser, now time.T
 	}
 
 	usr := Info{
-		ID: uuid.New().String(),
-		Name: nu.Name,
-		Email: nu.Email,
-		Roles: nu.Roles,
+		ID:           uuid.New().String(),
+		Name:         nu.Name,
+		Email:        nu.Email,
+		Roles:        nu.Roles,
 		PasswordHash: hash,
-		DateCreated: now.UTC(),
-		DateUpdated: now.UTC(),
+		DateCreated:  now.UTC(),
+		DateUpdated:  now.UTC(),
 	}
 
 	const q = `
@@ -152,6 +153,8 @@ func (u User) Delete(ctx context.Context, traceID string, claims auth.Claims, us
 
 // Query retrieves a list of existing users from the database.
 func (u User) Query(ctx context.Context, traceID string) ([]Info, error) {
+	ctx, span := trace.SpanFromContext(ctx).Tracer().Start(ctx, "business.data.user.query")
+	defer span.End()
 
 	const q = `SELECT * FROM users`
 

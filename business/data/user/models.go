@@ -31,9 +31,9 @@ type NewUser struct {
 // Between a field that was not provided and a field that was provided as explicitly blank.
 // Normally we do not want to use pointers to basic types but we make exceptions around marshalling/unmarshalling.
 type UpdateUser struct {
-	Name            *string   `json:"name"`
-	Email           *string   `json:"email"            validate:"omitempty,email"`
-	Roles           []string  `json:"roles"`
-	Password        *string   `json:"password"`
-	PasswordConfirm *string   `json:"password_confirm" validate:"omitempty,eqfield=Password"`
+	Name            *string  `json:"name"`
+	Email           *string  `json:"email"            validate:"omitempty,email"`
+	Roles           []string `json:"roles"`
+	Password        *string  `json:"password"`
+	PasswordConfirm *string  `json:"password_confirm" validate:"omitempty,eqfield=Password"`
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"expvar"
 	"github.com/jean-pasqualini/go-service/foundation/web"
+	"go.opentelemetry.io/otel/trace"
 	"net/http"
 	"runtime"
 )
@@ -28,6 +29,9 @@ func Metrics() web.Middleware {
 
 		// Decorate handler
 		return func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+			ctx, span := trace.SpanFromContext(ctx).Tracer().Start(ctx, "business.mid.metrics")
+			defer span.End()
+
 			err := handler(ctx, w, r)
 
 			// Increment the request counter.

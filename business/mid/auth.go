@@ -5,6 +5,7 @@ import (
 	"github.com/jean-pasqualini/go-service/business/auth"
 	"github.com/jean-pasqualini/go-service/foundation/web"
 	"github.com/pkg/errors"
+	"go.opentelemetry.io/otel/trace"
 	"log"
 	"net/http"
 	"strings"
@@ -19,6 +20,9 @@ var ErrForbidden = web.NewRequestError(
 func Authenticate(a *auth.Auth) web.Middleware {
 	return func(handler web.Handler) web.Handler {
 		return func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+			ctx, span := trace.SpanFromContext(ctx).Tracer().Start(ctx, "business.mid.authenticate")
+			defer span.End()
+
 			// Parse the authorization header.
 			// Expected header is of the format `Authorization: Bearer <token>`
 			authHeader := r.Header.Get("Authorization")
@@ -48,6 +52,8 @@ func Authenticate(a *auth.Auth) web.Middleware {
 func Authorize(log *log.Logger, roles ...string) web.Middleware {
 	return func(handler web.Handler) web.Handler {
 		return func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+			ctx, span := trace.SpanFromContext(ctx).Tracer().Start(ctx, "business.mid.authorize")
+			defer span.End()
 
 			// If the context is missing this value, return failure.
 			claims, ok := ctx.Value(auth.Key).(auth.Claims)

@@ -3,6 +3,7 @@ package mid
 import (
 	"context"
 	"github.com/jean-pasqualini/go-service/foundation/web"
+	"go.opentelemetry.io/otel/trace"
 	"log"
 	"net/http"
 	"time"
@@ -27,6 +28,8 @@ func Logger(log *log.Logger) web.Middleware {
 
 		// This is a decorated handler.
 		outerHandler := func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+			ctx, span := trace.SpanFromContext(ctx).Tracer().Start(ctx, "business.mid.logger")
+			defer span.End()
 
 			// If the context is missing the value, request the service to be shutdown gracefully
 			v, ok := ctx.Value(web.KeyValues).(*web.Values)

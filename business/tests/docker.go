@@ -13,7 +13,7 @@ import (
 
 // Container tracks information about the docker container started for tests.
 type Container struct {
-	ID  string
+	ID   string
 	Host string
 }
 
@@ -40,7 +40,6 @@ func dumpContainerLogs(t *testing.T, id string) {
 	t.Logf("Logs for %s\n%s:", id, out)
 }
 
-
 func startContainer(t *testing.T, image string, port string, envs []string) *Container {
 
 	ctx := context.Background()
@@ -49,7 +48,7 @@ func startContainer(t *testing.T, image string, port string, envs []string) *Con
 		panic(err)
 	}
 
-	if reader, err  := cli.ImagePull(ctx, image, types.ImagePullOptions{}); err != nil {
+	if reader, err := cli.ImagePull(ctx, image, types.ImagePullOptions{}); err != nil {
 		panic(err)
 	} else {
 		ioutil.ReadAll(reader)
@@ -58,7 +57,7 @@ func startContainer(t *testing.T, image string, port string, envs []string) *Con
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
 		Image: image,
 		Tty:   false,
-		Env: envs,
+		Env:   envs,
 	}, &container.HostConfig{PublishAllPorts: true}, nil, nil, "")
 	if err != nil {
 		panic(err)
@@ -70,12 +69,12 @@ func startContainer(t *testing.T, image string, port string, envs []string) *Con
 
 	id := resp.ID
 
-	containerJson, _  := cli.ContainerInspect(ctx, id)
+	containerJson, _ := cli.ContainerInspect(ctx, id)
 
-	endpoint := containerJson.NetworkSettings.Ports[nat.Port(port + "/tcp")][0]
+	endpoint := containerJson.NetworkSettings.Ports[nat.Port(port+"/tcp")][0]
 
 	c := Container{
-		ID:  id,
+		ID:   id,
 		Host: net.JoinHostPort(endpoint.HostIP, endpoint.HostPort),
 	}
 

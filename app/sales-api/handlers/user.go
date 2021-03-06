@@ -7,6 +7,7 @@ import (
 	"github.com/jean-pasqualini/go-service/business/data/user"
 	"github.com/jean-pasqualini/go-service/foundation/web"
 	"github.com/pkg/errors"
+	"go.opentelemetry.io/otel/trace"
 	"net/http"
 	"strconv"
 )
@@ -17,6 +18,8 @@ type userController struct {
 }
 
 func (uc userController) query(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	ctx, span := trace.SpanFromContext(ctx).Tracer().Start(ctx, "handlers.userController.query")
+	defer span.End()
 
 	v, ok := ctx.Value(web.KeyValues).(*web.Values)
 	if !ok {
@@ -57,14 +60,14 @@ func (uc userController) queryByID(ctx context.Context, w http.ResponseWriter, r
 	usr, err := uc.user.QueryByID(ctx, v.TraceId, claims, params["id"])
 	if err != nil {
 		switch err {
-			case user.ErrInvalidID:
-				return web.NewRequestError(err, http.StatusBadRequest)
-			case user.ErrNotFound:
-				return web.NewRequestError(err, http.StatusNotFound)
-			case user.ErrForbidden:
-				return web.NewRequestError(err, http.StatusForbidden)
-			default:
-				return errors.Wrapf(err, "ID: %s", params["id"])
+		case user.ErrInvalidID:
+			return web.NewRequestError(err, http.StatusBadRequest)
+		case user.ErrNotFound:
+			return web.NewRequestError(err, http.StatusNotFound)
+		case user.ErrForbidden:
+			return web.NewRequestError(err, http.StatusForbidden)
+		default:
+			return errors.Wrapf(err, "ID: %s", params["id"])
 		}
 	}
 
@@ -110,14 +113,14 @@ func (uc userController) update(ctx context.Context, w http.ResponseWriter, r *h
 	err := uc.user.Update(ctx, v.TraceId, claims, params["id"], uu, v.Now)
 	if err != nil {
 		switch err {
-			case user.ErrInvalidID:
-				return web.NewRequestError(err, http.StatusBadRequest)
-			case user.ErrNotFound:
-				return web.NewRequestError(err, http.StatusNotFound)
-			case user.ErrForbidden:
-				return web.NewRequestError(err, http.StatusForbidden)
-			default:
-				return errors.Wrapf(err, "ID: %s, User: %+v", params["id"], &uu)
+		case user.ErrInvalidID:
+			return web.NewRequestError(err, http.StatusBadRequest)
+		case user.ErrNotFound:
+			return web.NewRequestError(err, http.StatusNotFound)
+		case user.ErrForbidden:
+			return web.NewRequestError(err, http.StatusForbidden)
+		default:
+			return errors.Wrapf(err, "ID: %s, User: %+v", params["id"], &uu)
 		}
 	}
 
@@ -140,14 +143,14 @@ func (uc userController) delete(ctx context.Context, w http.ResponseWriter, r *h
 	err := uc.user.Delete(ctx, v.TraceId, claims, params["id"])
 	if err != nil {
 		switch err {
-			case user.ErrInvalidID:
-				return web.NewRequestError(err, http.StatusBadRequest)
-			case user.ErrNotFound:
-				return web.NewRequestError(err, http.StatusNotFound)
-			case user.ErrForbidden:
-				return web.NewRequestError(err, http.StatusForbidden)
-			default:
-				return errors.Wrapf(err, "ID: %s", params["id"])
+		case user.ErrInvalidID:
+			return web.NewRequestError(err, http.StatusBadRequest)
+		case user.ErrNotFound:
+			return web.NewRequestError(err, http.StatusNotFound)
+		case user.ErrForbidden:
+			return web.NewRequestError(err, http.StatusForbidden)
+		default:
+			return errors.Wrapf(err, "ID: %s", params["id"])
 		}
 	}
 
@@ -169,10 +172,10 @@ func (uc userController) token(ctx context.Context, w http.ResponseWriter, r *ht
 	claims, err := uc.user.Authenticate(ctx, v.TraceId, v.Now, email, pass)
 	if err != nil {
 		switch err {
-			case user.ErrAuthenticationFailure:
-				return web.NewRequestError(err, http.StatusUnauthorized)
-			default:
-				return errors.Wrap(err, "authenticating")
+		case user.ErrAuthenticationFailure:
+			return web.NewRequestError(err, http.StatusUnauthorized)
+		default:
+			return errors.Wrap(err, "authenticating")
 		}
 	}
 

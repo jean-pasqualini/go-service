@@ -28,8 +28,8 @@ const (
 // Configuration for running tests.
 var (
 	dbImage = "postgres:13-alpine"
-	dbPort = "5432"
-	envs = []string{"POSTGRES_PASSWORD=postgres"}
+	dbPort  = "5432"
+	envs    = []string{"POSTGRES_PASSWORD=postgres"}
 	AdminID = "5cf37266-3473-4006-984f-9325122678b7"
 	UserID  = "45b5fbd3-755f-4379-8f07-a58d4a30fa2f"
 )
@@ -40,10 +40,10 @@ func NewUnit(t *testing.T) (*log.Logger, *sqlx.DB, func()) {
 	c := startContainer(t, dbImage, dbPort, envs)
 
 	cfg := database.Config{
-		User: "postgres",
-		Password: "postgres",
-		Host: c.Host,
-		Name: "postgres",
+		User:       "postgres",
+		Password:   "postgres",
+		Host:       c.Host,
+		Name:       "postgres",
 		DisableTLS: true,
 	}
 	db, err := database.Open(cfg)
@@ -83,7 +83,7 @@ func NewUnit(t *testing.T) (*log.Logger, *sqlx.DB, func()) {
 		stopContainer(t, c.ID)
 	}
 
-	log := log.New(os.Stdout, "TEST : ", log.LstdFlags | log.Lmicroseconds | log.Lshortfile)
+	log := log.New(os.Stdout, "TEST : ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile)
 
 	return log, db, teardown
 }
@@ -106,7 +106,7 @@ func IntPointer(i int) *int {
 func Context() context.Context {
 	values := web.Values{
 		TraceId: uuid.New().String(),
-		Now: time.Now(),
+		Now:     time.Now(),
 	}
 
 	return context.WithValue(context.Background(), web.KeyValues, &values)
@@ -142,8 +142,8 @@ func NewIntegration(t *testing.T) *Test {
 	kidID := "4754d86b-7a6d-4df5-9c65-224741361492"
 	lookup := func(kid string) (*rsa.PublicKey, error) {
 		switch kid {
-			case kidID:
-				return &privateKey.PublicKey, nil
+		case kidID:
+			return &privateKey.PublicKey, nil
 		}
 		return nil, fmt.Errorf("no public key found for the specified kid: %s", kid)
 	}

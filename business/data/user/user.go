@@ -31,15 +31,15 @@ var (
 
 // User manages the set of API's for user access.
 type User struct {
-	log *log.Logger
-	db *sqlx.DB
+	logger *log.Logger
+	db     *sqlx.DB
 }
 
 // New constructs a User for api access.
 func New(log *log.Logger, db *sqlx.DB) User {
 	return User{
-		log: log,
-		db: db,
+		logger: log,
+		db:     db,
 	}
 }
 
@@ -54,6 +54,7 @@ func (u User) Create(ctx context.Context, traceID string, nu NewUser, now time.T
 		ID: uuid.New().String(),
 		Name: nu.Name,
 		Email: nu.Email,
+		Roles: nu.Roles,
 		PasswordHash: hash,
 		DateCreated: now.UTC(),
 		DateUpdated: now.UTC(),
@@ -65,7 +66,7 @@ func (u User) Create(ctx context.Context, traceID string, nu NewUser, now time.T
 	`
 	qParams := []interface{}{usr.ID, usr.Name, usr.Email, usr.PasswordHash, usr.Roles, usr.DateCreated, usr.DateUpdated}
 
-	u.log.Printf(
+	u.logger.Printf(
 		"%s : %s : query : %s",
 		traceID,
 		"user.Create",
@@ -116,7 +117,7 @@ func (u User) Update(ctx context.Context, traceID string, claims auth.Claims, us
 	WHERE
 		user_id = $1`
 
-	u.log.Printf("%s: %s: %s", traceID, "user.Update",
+	u.logger.Printf("%s: %s: %s", traceID, "user.Update",
 		database.Log(q, usr.ID, usr.Name, usr.Email, usr.Roles, usr.PasswordHash, usr.DateCreated, usr.DateUpdated),
 	)
 
@@ -140,7 +141,7 @@ func (u User) Delete(ctx context.Context, traceID string, claims auth.Claims, us
 
 	const q = `DELETE FROM users WHERE user_id = $1`
 
-	u.log.Printf("%s : %s : query : %s", traceID, "user.Delete", database.Log(q, userID))
+	u.logger.Printf("%s : %s : query : %s", traceID, "user.Delete", database.Log(q, userID))
 
 	if _, err := u.db.ExecContext(ctx, q, userID); err != nil {
 		return errors.Wrapf(err, "deleting user %s", userID)
@@ -183,7 +184,7 @@ func (u User) QueryByID(ctx context.Context, traceID string, claims auth.Claims,
 	WHERE 
 		user_id = $1`
 
-	u.log.Printf("%s: %s: %s", traceID, "user.QueryByID",
+	u.logger.Printf("%s: %s: %s", traceID, "user.QueryByID",
 		database.Log(q, userID),
 	)
 
@@ -208,7 +209,7 @@ func (u User) QueryByEmail(ctx context.Context, traceID string, claims auth.Clai
 	WHERE
 		email = $1`
 
-	u.log.Printf("%s: %s: %s", traceID, "user.QueryByEmail",
+	u.logger.Printf("%s: %s: %s", traceID, "user.QueryByEmail",
 		database.Log(q, email),
 	)
 
@@ -240,7 +241,7 @@ func (u User) Authenticate(ctx context.Context, traceID string, now time.Time, e
 	WHERE
 		email = $1`
 
-	u.log.Printf("%s: %s: %s", traceID, "user.Authenticate",
+	u.logger.Printf("%s: %s: %s", traceID, "user.Authenticate",
 		database.Log(q, email),
 	)
 
